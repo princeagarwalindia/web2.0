@@ -2,50 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dino Game Controller</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controller</title>
   <style>
     body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
       font-family: Arial, sans-serif;
-      background: #f0f0f0;
+      text-align: center;
+      padding: 20px;
     }
-
     button {
-      width: 200px;
-      height: 100px;
-      font-size: 24px;
-      font-weight: bold;
-      color: white;
-      background: #222;
-      border: none;
-      border-radius: 8px;
+      font-size: 20px;
+      padding: 10px 20px;
       cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-      transition: all 0.2s;
-    }
-
-    button:active {
-      transform: scale(0.95);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
   </style>
 </head>
 <body>
-  <button id="jumpButton">JUMP</button>
+  <h1>Controller</h1>
+  <button id="jumpButton">Jump</button>
 
   <script>
-    // BroadcastChannel for communication
+    // Initialize the BroadcastChannel
     const channel = new BroadcastChannel("dino-game");
+    console.log("BroadcastChannel initialized on Controller.");
 
-    // Send "jump" action when the button is pressed
+    // Add event listener to the Jump button
     document.getElementById("jumpButton").addEventListener("click", () => {
       console.log("Sending 'jump' message to BroadcastChannel.");
       channel.postMessage("jump");
     });
+
+    // Optional: Listener for any incoming messages (for debugging)
+    channel.onmessage = (e) => {
+      console.log("Unexpected message received in controller:", e.data);
+    };
   </script>
 </body>
 </html>
