@@ -43,6 +43,7 @@
 
     // Send "jump" action when the button is pressed
     document.getElementById("jumpButton").addEventListener("click", () => {
+      console.log("Sending 'jump' message to BroadcastChannel.");
       channel.postMessage("jump");
     });
   </script>
