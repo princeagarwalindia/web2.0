@@ -16,6 +16,7 @@
       height: 200px;
       margin: 20px auto;
       position: relative;
+      overflow: hidden;
     }
     .dino {
       width: 40px;
@@ -34,37 +35,30 @@
   </div>
 
   <script>
-    // Game variables
     const dino = document.getElementById("dino");
     let isJumping = false;
-    let gameState = "waiting";
 
-    // Initialize the BroadcastChannel
-    const channel = new BroadcastChannel("dino-game");
-    console.log("BroadcastChannel initialized on Desktop.");
+    // Connect to the WebSocket server
+    const ws = new WebSocket("wss://web2-0-7bzj.onrender.com");
 
-    // Listen for messages from the controller
-    channel.onmessage = (e) => {
-      console.log("Message received from phone:", e.data);
-      if (e.data === "jump") {
-        if (gameState === "waiting") {
-          console.log("Starting the game...");
-          startGame();
-        } else {
-          console.log("Performing jump...");
-          jump();
-        }
-      } else {
-        console.warn("Unknown message received:", e.data);
+    ws.onopen = () => {
+      console.log("Connected to WebSocket server");
+    };
+
+    ws.onmessage = (message) => {
+      console.log("Message received:", message.data);
+      if (message.data === "jump") {
+        jump();
       }
     };
 
-    // Function to start the game
-    function startGame() {
-      gameState = "playing";
-      console.log("Game started!");
-      // Add game logic here if needed
-    }
+    ws.onclose = () => {
+      console.log("Disconnected from WebSocket server");
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
 
     // Function to make the dino jump
     function jump() {
@@ -72,6 +66,7 @@
 
       isJumping = true;
       let position = 0;
+
       const intervalUp = setInterval(() => {
         if (position >= 150) {
           clearInterval(intervalUp);
@@ -80,12 +75,13 @@
               clearInterval(intervalDown);
               isJumping = false;
             }
-            position -= 5;
+            position = Math.max(0, position - 5);
             dino.style.bottom = position + "px";
           }, 20);
+        } else {
+          position += 5;
+          dino.style.bottom = position + "px";
         }
-        position += 5;
-        dino.style.bottom = position + "px";
       }, 20);
     }
   </script>
