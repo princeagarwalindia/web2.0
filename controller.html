@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dino Game Controller</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+    }
+
+    button {
+      width: 200px;
+      height: 100px;
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+      background: #222;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+      transition: all 0.2s;
+    }
+
+    button:active {
+      transform: scale(0.95);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <button id="jumpButton">JUMP</button>
+
+  <script>
+    // BroadcastChannel for communication
+    const channel = new BroadcastChannel("dino-game");
+
+    // Send "jump" action when the button is pressed
+    document.getElementById("jumpButton").addEventListener("click", () => {
+      channel.postMessage("jump");
+    });
+  </script>
+</body>
+</html>
