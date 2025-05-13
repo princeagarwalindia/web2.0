@@ -1,18 +1,93 @@
-// Inside <script> in your HTML file
-const channel = new BroadcastChannel("dino-game");
-
-// Listen for messages from the phone
-channel.onmessage = (e) => {
-  console.log("Message received from phone:", e.data); // Debug log
-  if (e.data === "jump") {
-    if (gameState === 'waiting') {
-      console.log("Starting the game...");
-      startGame();
-    } else {
-      console.log("Performing jump...");
-      jump();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dino Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
     }
-  } else {
-    console.warn("Unknown message received:", e.data); // Catch unexpected messages
-  }
-};
+    #game {
+      border: 1px solid black;
+      width: 600px;
+      height: 200px;
+      margin: 20px auto;
+      position: relative;
+    }
+    .dino {
+      width: 40px;
+      height: 40px;
+      background-color: green;
+      position: absolute;
+      bottom: 0;
+      left: 50px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Dino Game</h1>
+  <div id="game">
+    <div class="dino" id="dino"></div>
+  </div>
+
+  <script>
+    // Game variables
+    const dino = document.getElementById("dino");
+    let isJumping = false;
+    let gameState = "waiting";
+
+    // Initialize the BroadcastChannel
+    const channel = new BroadcastChannel("dino-game");
+    console.log("BroadcastChannel initialized on Desktop.");
+
+    // Listen for messages from the controller
+    channel.onmessage = (e) => {
+      console.log("Message received from phone:", e.data);
+      if (e.data === "jump") {
+        if (gameState === "waiting") {
+          console.log("Starting the game...");
+          startGame();
+        } else {
+          console.log("Performing jump...");
+          jump();
+        }
+      } else {
+        console.warn("Unknown message received:", e.data);
+      }
+    };
+
+    // Function to start the game
+    function startGame() {
+      gameState = "playing";
+      console.log("Game started!");
+      // Add game logic here if needed
+    }
+
+    // Function to make the dino jump
+    function jump() {
+      if (isJumping) return;
+
+      isJumping = true;
+      let position = 0;
+      const intervalUp = setInterval(() => {
+        if (position >= 150) {
+          clearInterval(intervalUp);
+          const intervalDown = setInterval(() => {
+            if (position <= 0) {
+              clearInterval(intervalDown);
+              isJumping = false;
+            }
+            position -= 5;
+            dino.style.bottom = position + "px";
+          }, 20);
+        }
+        position += 5;
+        dino.style.bottom = position + "px";
+      }, 20);
+    }
+  </script>
+</body>
+</html>
