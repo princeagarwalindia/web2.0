@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dino Game – Phone Controlled</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: sans-serif;
+    }
+
+    #game {
+      position: relative;
+      width: 800px;
+      height: 200px;
+      background: white;
+      border: 2px solid #444;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    #qr-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #qr {
+      margin-bottom: 10px;
+    }
+
+    #dino {
+      position: absolute;
+      bottom: 0;
+      left: 50px;
+      width: 40px;
+      height: 40px;
+      background: #222;
+      border-radius: 4px;
+    }
+
+    #obstacle {
+      position: absolute;
+      bottom: 0;
+      left: 800px;
+      width: 30px;
+      height: 40px;
+      background: crimson;
+      border-radius: 2px;
+    }
+
+    #overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 800px;
+      height: 200px;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div id="qr-container">
+    <canvas id="qr"></canvas>
+    <p>Scan this QR code on your phone to control the game!</p>
+  </div>
+
+  <div id="game">
+    <div id="overlay">Press Space or Use Phone to Start</div>
+    <div id="dino"></div>
+    <div id="obstacle"></div>
+  </div>
+
+  <script>
+    const dino = document.getElementById("dino");
+    const obstacle = document.getElementById("obstacle");
+    const overlay = document.getElementById("overlay");
+
+    let velocity = 0;
+    let gravity = -0.5;
+    let position = 0;
+    let obstacleLeft = 800;
+    let gameState = 'waiting'; // 'playing' or 'waiting'
+    let isJumping = false;
+
+    // BroadcastChannel for communication
+    const channel = new BroadcastChannel("dino-game");
+
+    // Listen for messages from the phone
+    channel.onmessage = (e) => {
+      if (e.data === "jump") {
+        if (gameState === 'waiting') {
+          startGame();
+        } else {
+          jump();
+        }
+      }
+    };
+
+    function resetGame() {
+      position = 0;
+      velocity = 0;
+      isJumping = false;
+      dino.style.bottom = "0px";
+      obstacleLeft = 800;
+      obstacle.style.left = obstacleLeft + "px";
+      gameState = 'waiting';
+      overlay.style.display = "flex";
+    }
+
+    function startGame() {
+      gameState = 'playing';
+      overlay.style.display = "none";
+      requestAnimationFrame(moveObstacle);
+    }
+
+    function jump() {
+      if (isJumping || gameState !== 'playing') return;
+      isJumping = true;
+      velocity = 10;
+
+      const jumpInterval = setInterval(() => {
+        velocity += gravity;
+        position += velocity;
+
+        if (position <= 0) {
+          position = 0;
+          clearInterval(jumpInterval);
+          isJumping = false;
+        }
+
+        dino.style.bottom = position + "px";
+      }, 20);
+    }
+
+    function moveObstacle() {
+      if (gameState !== 'playing') return;
+
+      obstacleLeft -= 5;
+      obstacle.style.left = obstacleLeft + "px";
+
+      if (obstacleLeft < -30) {
+        obstacleLeft = 800;
+      }
+
+      const dinoRect = dino.getBoundingClientRect();
+      const obstacleRect = obstacle.getBoundingClientRect();
+
+      const isColliding =
+        dinoRect.right > obstacleRect.left + 5 &&
+        dinoRect.left < obstacleRect.right - 5 &&
+        dinoRect.bottom > obstacleRect.top;
+
+      if (isColliding) {
+        resetGame(); // Don't reload — reset and wait
+        return;
+      }
+
+      requestAnimationFrame(moveObstacle);
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.code === "Space" || e.code === "ArrowUp") {
+        if (gameState === 'waiting') {
+          startGame();
+        } else {
+          jump();
+        }
+      }
+    });
+
+    // Generate QR code for the phone controller
+    const qrCanvas = document.getElementById("qr");
+    const controllerURL = "https://princeagarwalindia.github.io/Website/controller.html"; // GitHub Pages URL for the controller
+    QRCode.toCanvas(qrCanvas, controllerURL, (error) => {
+      if (error) console.error(error);
+    });
+
+    // Initial state
+    resetGame();
+  </script>
+</body>
+</html>
